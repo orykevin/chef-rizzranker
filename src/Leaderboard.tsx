@@ -14,9 +14,7 @@ export function Leaderboard() {
             className="flex items-center justify-between p-4 bg-white rounded-lg shadow"
           >
             <div className="flex items-center gap-4">
-              <div className="text-2xl font-bold text-slate-500">
-                #{index + 1}
-              </div>
+              <div className="text-2xl font-bold text-slate-500">#{index + 1}</div>
               <div>
                 <div className="font-semibold">{player.username}</div>
                 <div className="text-sm text-slate-500">
@@ -26,7 +24,7 @@ export function Leaderboard() {
             </div>
             <div className="text-right">
               <div className="font-bold text-xl">{player.score.toFixed(1)}</div>
-              <div className="text-sm text-slate-500">Average Score</div>
+              <div className="text-sm text-slate-500">Score</div>
             </div>
           </div>
         ))}

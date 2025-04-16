@@ -19,7 +19,6 @@ import type * as chat from "../chat.js";
 import type * as crons from "../crons.js";
 import type * as http from "../http.js";
 import type * as leaderboard from "../leaderboard.js";
-import type * as middleware from "../middleware.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -36,7 +35,6 @@ declare const fullApi: ApiFromModules<{
   crons: typeof crons;
   http: typeof http;
   leaderboard: typeof leaderboard;
-  middleware: typeof middleware;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,

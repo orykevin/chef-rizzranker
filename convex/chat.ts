@@ -1,13 +1,19 @@
-import { v } from "convex/values";
-import { internalAction, internalMutation, mutation, query } from "./_generated/server";
+import { v, ConvexError } from "convex/values";
+import { internalAction, internalMutation, mutation, query, MutationCtx } from "./_generated/server";
 import { internal, api } from "./_generated/api";
 import { Doc } from "./_generated/dataModel";
 import OpenAI from "openai";
 import { getAuthUserId } from "@convex-dev/auth/server";
-import { isAuthenticatedMiddleware } from "./middleware";
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { generateObject } from 'ai'
 import * as z from 'zod'
+
+export const isAuthenticatedMiddleware = async (ctx: MutationCtx) => {
+  const userId = await getAuthUserId(ctx);
+  if (!userId) throw new ConvexError("Not authenticated");
+
+  return userId;
+};
 
 const google = createGoogleGenerativeAI({
   // custom settings
