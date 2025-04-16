@@ -2,20 +2,24 @@ import { v } from "convex/values";
 import { internalMutation, query } from "./_generated/server";
 
 export const getLeaderboard = query({
-  args: {},
-  handler: async (ctx) => {
+  args: {characterId: v.id("characters")},
+  handler: async (ctx, args) => {
     const today = new Date().toISOString().split('T')[0];
 
     // Get today's top 10 players
     const leaderboard = await ctx.db
       .query("leaderboard")
+      .withIndex("by_character", (q) => q.eq("characterId", args.characterId))
       .order("desc")
       .take(10);
 
     // Get user details for each leaderboard entry
-    const leaderboardWithUsers = leaderboard.map((entry) => ({
-      ...entry,
-      username: `Player ${entry.userId.slice(0, 6)}`, // Create a short player ID
+    const leaderboardWithUsers = await Promise.all(leaderboard.map(async (entry) => {
+      const user = await ctx.db.get(entry.userId);
+      return {
+        ...entry,
+        username: user?.name || `Player ${entry.userId.slice(0, 6)}`,
+      };
     }));
 
     return leaderboardWithUsers;

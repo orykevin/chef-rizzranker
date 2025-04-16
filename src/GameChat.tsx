@@ -4,17 +4,19 @@ import { api } from "../convex/_generated/api";
 import { Button } from "./components/ui/button";
 import { useConvexAuth } from "convex/react";
 import { Id } from "../convex/_generated/dataModel";
+import { useGlobalState } from "./App";
 
 export function GameChat() {
   const { isAuthenticated } = useConvexAuth();
-  const [selectedCharacter, setSelectedCharacter] = useState<Id<"characters"> | null>(null);
+  const { characterId, setCharacterId } = useGlobalState();
   const [message, setMessage] = useState("");
 
   const characters = useQuery(api.characters.getActiveCharacter, {});
   const messages = useQuery(api.chat.getMessages, 
-    selectedCharacter ? { characterId: selectedCharacter } : "skip"
+    characterId ? { characterId } : "skip"
   );
   const sendMessage = useMutation(api.chat.sendMessage);
+  const selectedCharacterData = characters?.find((c) => c._id === characterId);
 
   if (!isAuthenticated) {
     return <div>Please sign in to play</div>;
@@ -26,11 +28,11 @@ export function GameChat() {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedCharacter || !message.trim()) return;
+    if (!characterId || !message.trim()) return;
 
     try {
       await sendMessage({
-        characterId: selectedCharacter,
+        characterId,
         message: message.trim(),
       });
       setMessage("");
@@ -39,7 +41,7 @@ export function GameChat() {
     }
   };
 
-  if (!selectedCharacter) {
+  if (!characterId) {
     return (
       <div className="p-4 bg-white rounded-lg shadow">
         <h2 className="text-xl font-bold mb-4">Choose a Character</h2>
@@ -48,7 +50,7 @@ export function GameChat() {
             <div
               key={character._id}
               className="p-4 border rounded-lg cursor-pointer hover:bg-gray-50"
-              onClick={() => setSelectedCharacter(character._id)}
+              onClick={() => setCharacterId(character._id)}
             >
               <h3 className="font-bold">{character.name}</h3>
               <p className="text-sm text-gray-600">{character.personality}</p>
@@ -63,7 +65,7 @@ export function GameChat() {
     <div className="flex flex-col h-[600px] bg-white rounded-lg shadow">
       <div className="flex justify-between items-center p-4 border-b">
         <h2 className="text-xl font-bold">Chat</h2>
-        <Button variant="outline" onClick={() => setSelectedCharacter(null)}>
+        <Button variant="outline" onClick={() => setCharacterId(null)}>
           Change Character
         </Button>
       </div>

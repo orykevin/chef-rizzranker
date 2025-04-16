@@ -1,12 +1,19 @@
 import { useQuery } from "convex/react";
 import { api } from "../convex/_generated/api";
+import { useGlobalState } from "./App";
 
 export function Leaderboard() {
-  const leaderboard = useQuery(api.leaderboard.getLeaderboard) || [];
+  const { characterId } = useGlobalState();
+  const leaderboard = useQuery(api.leaderboard.getLeaderboard, characterId ? { characterId } : 'skip') || [];
+  const characters = useQuery(api.characters.getActiveCharacter, {});
+
+  const currentCharacter = characters ? characters?.find((c) => c._id === characterId) : null;
+
+  console.log(characters, characterId)
 
   return (
     <div className="max-w-2xl mx-auto p-4">
-      <h2 className="text-2xl font-bold mb-4">Today's Top Players</h2>
+      <h2 className="text-2xl font-bold mb-4">Top Players with {currentCharacter?.name || ' - '}</h2>
       <div className="space-y-2">
         {leaderboard.map((player, index) => (
           <div

@@ -7,7 +7,7 @@ export const getActiveCharacter = query({
     const character = await ctx.db
       .query("characters")
       .order("desc")
-      .first();
+      .collect();
 
     if (!character) {
       throw new Error("No character available");

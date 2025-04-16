@@ -32,7 +32,8 @@ const applicationTables = {
     messageCount: v.number(),
     characterId: v.optional(v.id("characters")), // Optional for backward compatibility
   })
-    .index("by_user_and_character", ["userId", "characterId"]),
+    .index("by_user_and_character", ["userId", "characterId"])
+    .index("by_character", ["characterId", "score", "messageCount"]),
 
   globalLeaderboard: defineTable({
     userId: v.id('users'),
