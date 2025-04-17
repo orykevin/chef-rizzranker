@@ -1,14 +1,13 @@
 import { v, ConvexError } from "convex/values";
-import { internalAction, internalMutation, mutation, query, MutationCtx } from "./_generated/server";
+import { internalAction, internalMutation, mutation, query, MutationCtx, QueryCtx } from "./_generated/server";
 import { internal, api } from "./_generated/api";
 import { Doc } from "./_generated/dataModel";
-import OpenAI from "openai";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { generateObject } from 'ai'
 import * as z from 'zod'
 
-export const isAuthenticatedMiddleware = async (ctx: MutationCtx) => {
+export const isAuthenticatedMiddleware = async (ctx: MutationCtx | QueryCtx) => {
   const userId = await getAuthUserId(ctx);
   if (!userId) throw new ConvexError("Not authenticated");
 
@@ -23,12 +22,6 @@ const google = createGoogleGenerativeAI({
 const model = google('gemini-2.0-flash-001', {
   structuredOutputs: false,
 });
-
-const openai = new OpenAI({
-  baseURL: process.env.CONVEX_OPENAI_BASE_URL,
-  apiKey: process.env.CONVEX_OPENAI_API_KEY,
-});
-
 
 type Message = Doc<"messages">;
 type Character = Doc<"characters">;
@@ -78,6 +71,7 @@ export const sendMessage = mutation({
       characterId: args.characterId,
       userId,
       currentScore: currentScore?.score || 0,
+      lastMessage: args.message,
     });
   },
 });
@@ -87,6 +81,7 @@ export const generateResponse = internalAction({
     characterId: v.id("characters"),
     userId: v.id('users'),
     currentScore: v.number(),
+    lastMessage: v.string(),
   },
   handler: async (ctx, args) => {
     // Get character details
@@ -101,20 +96,38 @@ export const generateResponse = internalAction({
       userId: args.userId,
     });
 
-    const prompt = `You are ${character.name}, ${character.personality}. ${character.background}
-      Your interests are: ${character.interests.join(", ")}
-      You like: ${character.preferences.likes.join(", ")}
-      You dislike: ${character.preferences.dislikes.join(", ")}
+    const prompt = `You are ${character.name}, ${character.personality}. ${character.background}  
+      Your interests include: ${character.interests.join(", ")}.  
+      You like: ${character.preferences.likes.join(", ")}.  
+      You dislike: ${character.preferences.dislikes.join(", ")}.  
 
-      Please respond to the conversation in character. Rate the user's last message for humor (-10-10), creativity (-10-10), and chemistry (-10-10) and sum the scores.
-      Format your response as JSON with "message" and "scores" fields. Keep replies short, like a natural chat with someone new. Talk like you're just getting to know each other—don’t get too familiar too quickly.\n
+      Current Affection Score: ${args.currentScore} (scale: 1–50)
 
-      Current Affections score: ${args.currentScore}\n
+      Your task:
+      - Stay fully in character and reply to the user's latest message.
+      - Respond naturally and briefly, as if chatting with someone you’ve just met. Be curious, playful, or guarded depending on how the message feels.
+      - Progress the conversation — ask a question or give a comment that keeps it going.
+      - Avoid sounding robotic or overly familiar.
+      - Punish repetition and boredom.
 
-      Previous messages:\n
-      ${messages.map((m: Message) => `${m.isAiResponse ? character.name : "User"}: ${m.content}`).join("\n")}\n
+      Also, analyze the user's latest message:
+      - "${args.lastMessage}"
+      - Rate it from **-10 to 10** in three areas:
+        - **Humor**: Was it funny, clever, or playful?
+        - **Creativity**: Was it original or surprising?
+        - **Chemistry**: Did it build connection or flirty energy?
 
-    `;
+      Sum the three scores and return the result in this JSON format:
+      \`\`\`json
+      {
+        "message": "Your in-character reply here.",
+        "scores": number
+      }
+      \`\`\`
+
+      Message History:
+      ${messages.map((m: Message) => `${m.isAiResponse ? character.name : "User"}: ${m.content}`).join("\n")}
+    `
 
     const result = await generateObject({
       model: model,

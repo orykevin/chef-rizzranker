@@ -12,8 +12,7 @@ const applicationTables = {
       likes: v.array(v.string()),
       dislikes: v.array(v.string()),
     }),
-    activeDate: v.string(),
-  }).index("by_active_date", ["activeDate"]),
+  }),
 
   messages: defineTable({
     characterId: v.id("characters"),
@@ -33,12 +32,13 @@ const applicationTables = {
     characterId: v.optional(v.id("characters")), // Optional for backward compatibility
   })
     .index("by_user_and_character", ["userId", "characterId"])
-    .index("by_character", ["characterId", "score", "messageCount"]),
+    .index("by_character", ["characterId", "score", "messageCount"])
+    .index("by_user_score", ["userId", "score"]),
 
   globalLeaderboard: defineTable({
     userId: v.id('users'),
     totalScore: v.number()
-  }).index('by_user', ['userId'])
+  }).index('by_user', ['userId']).index('by_total_score', ['totalScore'])
 };
 
 export default defineSchema({

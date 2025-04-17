@@ -16,3 +16,38 @@ export function SignOutButton() {
     </button>
   );
 }
+
+interface SidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+  menuItems: { label: string; onClick: () => void }[];
+}
+
+export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, menuItems }) => {
+  return (
+    <div
+      className={`fixed top-0 right-0 h-full w-full bg-white shadow-lg z-50 transform transition-transform duration-300 ease-in-out ${
+        isOpen ? "translate-x-0" : "-translate-x-full"
+      } md:hidden`}
+    >
+      <button
+        className="absolute top-4 right-4 text-xl"
+        onClick={onClose}
+        aria-label="Close sidebar"
+      >
+        ×
+      </button>
+      <nav className="mt-16 flex flex-col gap-4 px-6">
+        {menuItems.map((item, idx) => (
+          <button
+            key={idx}
+            className="text-lg text-left py-2 px-2 rounded hover:bg-gray-100"
+            onClick={item.onClick}
+          >
+            {item.label}
+          </button>
+        ))}
+      </nav>
+    </div>
+  );
+};
