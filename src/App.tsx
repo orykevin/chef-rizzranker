@@ -65,11 +65,21 @@ export default function App() {
   const updateProfile = useMutation(api.auth.updateProfile);
 
   if (isLoading) {
-    return <div className="w-screen h-screen flex items-center justify-center">Loading...</div>;
+    return (
+      <div className="w-screen h-screen flex flex-col items-center justify-center bg-white">
+        <span className="w-16 h-16 mb-6 inline-block animate-spin rounded-full border-4 border-pink-400 border-t-transparent"></span>
+        <span className="text-xl font-bold text-gray-400">Loading...</span>
+      </div>
+    );
   }
 
   if (userData === undefined) {
-    return <div className="w-screen h-screen flex items-center justify-center">Loading User Data...</div>;
+    return (
+      <div className="w-screen h-screen flex flex-col items-center justify-center bg-white">
+        <span className="w-16 h-16 mb-6 inline-block animate-spin rounded-full border-4 border-pink-400 border-t-transparent"></span>
+        <span className="text-xl font-bold text-gray-400">Loading...</span>
+      </div>
+    );
   }
 
   if (!isAuthenticated) {
@@ -78,9 +88,9 @@ export default function App() {
 
   if (!userData?.name) {
     return <div className="container max-w-2xl mx-auto p-4 mt-12">
-      <h1 className="text-2xl font-bold my-6">Please complete your profile</h1>
+      <h1 className="text-3xl font-bold text-center my-8 font-sans tracking-tight text-pink-600">Complete Your Profile</h1>
       <form
-        className="flex flex-col gap-4"
+        className="flex flex-col gap-4 bg-white rounded-2xl shadow-lg px-8 py-6 max-w-md mx-auto"
         onSubmit={ async (e) => {
           e.preventDefault();
           if (isUpdating) return;
@@ -91,8 +101,8 @@ export default function App() {
           });
         }}
       >
-        <input value={name} onChange={(e) => setName(e.target.value)} className="input-field" type="text" name="name" placeholder="Name" required />
-        <button className="auth-button" type="submit" disabled={isUpdating}>
+        <input value={name} onChange={(e) => setName(e.target.value)} className="rounded-full border border-pink-300 px-5 py-3 text-lg focus:outline-none focus:ring-2 focus:ring-pink-400 transition" type="text" name="name" placeholder="Name" required />
+        <button className="rounded-full bg-pink-500 text-white font-bold px-8 py-3 shadow hover:bg-pink-600 active:bg-pink-700 transition" type="submit" disabled={isUpdating}>
           Update Profile
         </button>
       </form>
@@ -121,12 +131,9 @@ export default function App() {
 
 export const GameUi = ({ setSidebarOpen }: { sidebarOpen: boolean; setSidebarOpen: (open: boolean) => void }) => {
   const { page, setPage } = usePage();
-  // Listen for sidebar menu navigation
   useEffect(() => {
     const handler = (e: any) => {
       if (e.detail === 'signOut') {
-        // You can trigger sign out logic here if needed
-        // For now, do nothing (SignOutButton is still visible in desktop)
       } else {
         setPage(e.detail);
       }
@@ -138,7 +145,7 @@ export const GameUi = ({ setSidebarOpen }: { sidebarOpen: boolean; setSidebarOpe
   return (
     <div className="container mx-auto p-1 md:p-4">
       <div className="flex justify-between items-center mb-4 mx-1">
-        <h1 className="text-2xl font-bold">Rizz Ranker</h1>
+        <h1 className="text-2xl font-bold text-pink-600 cursor-pointer" onClick={() => setPage('characterSelection')}>Rizz Ranker</h1>
         <div className="gap-2 hidden md:flex">
           <Button variant="outline" onClick={() => setPage('characterSelection')}>Game Chat</Button>
           <Button variant="outline" onClick={() => setPage('globalLeaderboard')}>Global Leaderboard</Button>
